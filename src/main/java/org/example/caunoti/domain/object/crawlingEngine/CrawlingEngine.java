@@ -6,6 +6,6 @@ import org.example.caunoti.domain.object.Annotation.Annotation;
 import java.io.IOException;
 import java.util.List;
 
-public interface crawlingEngine {
+public interface CrawlingEngine {
     List<Annotation> crawlFrom(Site site, String baseUrl, Integer postNum) throws IOException;
 }

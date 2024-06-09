@@ -1,4 +1,4 @@
-package org.example.caunoti.domain.object.Annotation;
+package org.example.caunoti.domain.object.Announcement;
 
 import lombok.Builder;
 import lombok.Getter;
@@ -9,7 +9,7 @@ import java.time.LocalDate;
 @Getter
 @Builder
 @ToString
-public class Annotation {
+public class Announcement {
     int id;
     int postNumber;
     String title;

@@ -7,5 +7,6 @@ import java.io.IOException;
 import java.util.List;
 
 public interface CrawlingEngine {
+    //해당 사이트에서 postMum 부터 하나씩 올라가며 숫자가 없을 때 까지 크롤링한다.
     List<Annotation> crawlFrom(Site site, String baseUrl, Integer postNum) throws IOException;
 }

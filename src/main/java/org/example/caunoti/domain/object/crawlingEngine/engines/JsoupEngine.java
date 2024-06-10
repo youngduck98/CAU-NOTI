@@ -1,6 +1,7 @@
 package org.example.caunoti.domain.object.crawlingEngine.engines;
 
 import org.example.caunoti.domain.object.Announcement.Announcement;
+import org.example.caunoti.domain.object.Site.Link;
 import org.example.caunoti.domain.object.Site.Site;
 import org.example.caunoti.domain.object.crawlingEngine.CrawlingEngine;
 import org.jsoup.Jsoup;
@@ -8,6 +9,9 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 
 import java.io.IOException;
+import java.net.URISyntaxException;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 /*
@@ -16,33 +20,93 @@ import java.util.List;
  */
 public class JsoupEngine implements CrawlingEngine{
 
-    public Announcement crawlAnnouncementFrom(String tryAddress) throws IOException{
-        Document doc = Jsoup.connect(tryAddress).get();
+    String nowFormatString;
+
+    public void addOneToQuery(Link link, String key){
+        int beforePostNum =
+                Integer.parseInt(link.getQueryParameter().get(key));
+        link.getQueryParameter()
+                .put(key, Integer.toString(beforePostNum+1));
+    }
+
+    public void setQueryValue(Link link, String key, String value){
+        link.getQueryParameter().put(key, value);
+    }
+
+    public Announcement crawlAnnouncementFrom(
+            Link link, DateTimeFormatter dateTimeFormatter, String PostNumQueryKey) throws IOException{
+        String tryUrl = link.toURL();
+        Document doc = Jsoup.connect(tryUrl).get();
         Element titleElement = doc.select("div.header > h3").first();
         Element dateElement = doc.select("div.header span:nth-child(1)").first();
         Element authorElement = doc.select("div.header > div > span:nth-child(3)").first();
 
+        if(titleElement == null)
+            throw new IOException();
+
+        String title = titleElement.text();
+        LocalDate postAt = LocalDate.parse(dateElement.text(), dateTimeFormatter);
+        String writer = authorElement.text();
+        int postNum = Integer.parseInt(link.getQueryParameter().get(PostNumQueryKey));
+
+
+        return Announcement.builder()
+                        .postAt(postAt)
+                        .title(title)
+                        .writer(writer)
+                        .postNumber(postNum)
+                        .build();
     }
+
+    public int checkAboveAnnouncement(Link link, String postNumQueryKey){
+        int count = 0;
+        addOneToQuery(link, postNumQueryKey);
+
+        while(count < maxSeeAfterFindOmitNumber) {
+            try {
+                Document doc = Jsoup.connect(link.toURL()).get();
+                return Integer.parseInt(link
+                        .getQueryParameter().get(postNumQueryKey));
+            }
+            catch (IOException e){
+                addOneToQuery(link, postNumQueryKey);
+                count++;
+            }
+        }
+        return -1;
+    }
+
     @Override
-    public List<Announcement> crawlFrom(Site site, Integer postNum) throws IOException {
-        int nowPostNum = postNum;
+    public List<Announcement> crawlFrom(Site site) throws IOException, URISyntaxException {
         List<Announcement> announcements = new ArrayList<>();
 
+        Link baselink = site.getLink();
+        addOneToQuery(baselink, site.getPostNumQueryKey());
+
         boolean endCondition = false;
-        int endCount = 0;
+        int countSameAnnouncementFail = 0;
+
         while(!endCondition) {
-            String tryAddress = site.getLink().replace("uid=", "uid=" + nowPostNum);
             try {
-                Announcement announcement = crawlAnnouncementFrom(tryAddress);
+                Announcement announcement = crawlAnnouncementFrom(baselink,
+                                site.getDateTimeFormat(), site.getPostNumQueryKey());
                 announcements.add(announcement);
+                site.setLastPostNum(announcement.getPostNumber());
+                addOneToQuery(baselink, site.getPostNumQueryKey());
             } catch (IOException e) {
-                endCount++;
-                if(endCount > 3)
-                    endCondition = true;
-                continue;
+                countSameAnnouncementFail++;
+                if(countSameAnnouncementFail > maxTryAtOneAnnouncement) {
+                    int checkPostNum = checkAboveAnnouncement(baselink,
+                            site.getPostNumQueryKey());
+                    if(checkPostNum == -1) {//end condition
+                        endCondition = true;
+                        continue;
+                    }
+                    countSameAnnouncementFail = 0;
+                    setQueryValue(baselink, site.getPostNumQueryKey(),
+                            Integer.toString(checkPostNum));
+                }
             }
-            endCount = 0;
-            nowPostNum++;
         }
 
         return announcements;

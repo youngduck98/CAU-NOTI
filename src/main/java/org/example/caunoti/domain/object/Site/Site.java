@@ -14,7 +14,7 @@ public class Site{
     Link link;
     String koName;
     String enName;
-    String dateTimeFormat;
+    DateTimeFormatter dateTimeFormat;
 
     int lastPostNum;
     boolean crawlAble;

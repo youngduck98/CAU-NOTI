@@ -3,6 +3,7 @@ package org.example.caunoti.domain.object.crawlingEngine;
 import org.example.caunoti.domain.object.Announcement.Announcement;
 import org.example.caunoti.domain.object.Site.Site;
 
+import org.example.caunoti.domain.object.Announcement.Announcement;
 
 import java.io.IOException;
 import java.util.List;

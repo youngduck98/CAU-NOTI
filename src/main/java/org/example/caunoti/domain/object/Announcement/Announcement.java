@@ -10,7 +10,6 @@ import java.time.LocalDate;
 @Builder
 @ToString
 public class Announcement {
-    int id;
     int postNumber;
     String title;
     LocalDate postAt;

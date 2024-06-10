@@ -5,6 +5,7 @@ import lombok.Builder;
 import lombok.Getter;
 
 import java.net.URISyntaxException;
+import java.time.format.DateTimeFormatter;
 
 @Getter
 @Builder
@@ -13,6 +14,7 @@ public class Site{
     Link link;
     String koName;
     String enName;
+    String dateTimeFormat;
 
     int lastPostNum;
     boolean crawlAble;

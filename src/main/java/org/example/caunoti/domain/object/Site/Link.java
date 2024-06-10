@@ -17,6 +17,16 @@ public class Link {
     String route;
     Map<String, String> queryParameter;
 
+    public void addOneToQuery(String key){
+        int beforePostNum =
+                Integer.parseInt(queryParameter.get(key));
+        queryParameter.put(key, Integer.toString(beforePostNum+1));
+    }
+
+    public void setQueryValue(String key, String value){
+        queryParameter.put(key, value);
+    }
+
     // 기본 생성자
     public Link() {
         queryParameter = new LinkedHashMap<>();
